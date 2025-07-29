@@ -47,26 +47,57 @@ HTML_TEMPLATE = '''
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Microsoft Clarity Analytics -->
+    <!-- Google Analytics 4 - Reliable Format -->
     <script type="text/javascript">
-        (function(c, l, a, r, i, t, y) {
-            c[a] = c[a] || function() {
-                (c[a].q = c[a].q || []).push(arguments)
+        function loadGoogleAnalytics() {
+            var gaId = 'G-XXXXXXXXXX';
+            var script = document.createElement('script');
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+            document.head.appendChild(script);
+            
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', gaId);
+            
+            console.log('Google Analytics 4 loaded successfully: ' + gaId);
+        }
+        
+        // Load GA4 when page is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadGoogleAnalytics);
+        } else {
+            loadGoogleAnalytics();
+        }
+    </script>
+    
+    <!-- Microsoft Clarity Analytics - Reliable Format -->
+    <script type="text/javascript">
+        function loadClarity() {
+            var clarityId = 'sme4b33o32';
+            window.clarity = window.clarity || function() {
+                (window.clarity.q = window.clarity.q || []).push(arguments);
             };
-            t = l.createElement(r);
-            t.async = 1;
-            t.src = "https://www.clarity.ms/tag/" + i;
-            y = l.getElementsByTagName(r)[0];
-            y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "sme4b33o32");
+            
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.async = true;
+            script.src = 'https://www.clarity.ms/tag/' + clarityId;
+            
+            var firstScript = document.getElementsByTagName('script')[0];
+            firstScript.parentNode.insertBefore(script, firstScript);
+            
+            console.log('Microsoft Clarity loaded successfully: ' + clarityId);
+        }
         
-        // Debugging: Log when Clarity loads
-        window.clarity = window.clarity || function() {
-            console.log('Clarity tracking called:', arguments);
-        };
-        
-        // Verify Clarity is loading
-        console.log('Clarity script loaded for project: sme4b33o32');
+        // Load Clarity when page is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadClarity);
+        } else {
+            loadClarity();
+        }
     </script>
     
     <style>
@@ -204,6 +235,15 @@ HTML_TEMPLATE = '''
                 loading.classList.add('hidden');
                 
                 if (data.success && data.prompts && data.prompts.length > 0) {
+                    // Track successful prompt generation with Google Analytics
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'generate_prompt', {
+                            'platform': data.prompts[0].platform,
+                            'category': data.prompts[0].category,
+                            'event_category': 'engagement',
+                            'event_label': data.prompts[0].platform + '_prompt'
+                        });
+                    }
                     displayResults(data.prompts);
                 } else {
                     displayError('Failed to generate prompts. Please try again.');
@@ -268,6 +308,14 @@ HTML_TEMPLATE = '''
         
         function copyPrompt(button, content) {
             navigator.clipboard.writeText(content).then(() => {
+                // Track copy action with Google Analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'copy_prompt', {
+                        'event_category': 'interaction',
+                        'event_label': 'prompt_copied'
+                    });
+                }
+                
                 const originalText = button.innerHTML;
                 button.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
                 button.className = button.className.replace('bg-cyan-500 hover:bg-cyan-600', 'bg-green-500');
