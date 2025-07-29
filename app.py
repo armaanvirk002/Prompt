@@ -410,40 +410,182 @@ Return a JSON object with this structure:
     return None
 
 def generate_fallback_prompt(user_prompt):
-    """Generate fallback prompt when API is unavailable"""
+    """Generate intelligent fallback prompt based on request type"""
     platform = detect_platform(user_prompt)
+    prompt_lower = user_prompt.lower()
     
-    # Create detailed, structured fallback prompts based on the request
-    task = user_prompt.replace('chatgpt', '').replace('ChatGPT', '').replace('claude', '').replace('Claude', '').replace('midjourney', '').replace('Midjourney', '').replace('dall-e', '').replace('DALL-E', '').replace('gemini', '').replace('Gemini', '').strip()
+    # Intelligent category detection
+    if 'email' in prompt_lower:
+        category = 'Email Writing'
+        content = """Act as a professional email copywriter. I need you to write an email for [describe purpose: e.g., job application, newsletter, customer support, event invitation, marketing, etc.].
+
+Here are the details:
+- Recipient: [who it's for — e.g., recruiter, client, friend, company]
+- Tone: [e.g., professional, friendly, persuasive, apologetic]
+- Key points to include: [list important details, offers, or context]
+- Length: [short, medium, detailed]
+
+Make it well-structured, clear, and impactful. Include a strong subject line, greeting, body, and sign-off. If needed, add a call to action. No fluff — make every line matter."""
+    
+    elif any(word in prompt_lower for word in ['sms', 'text message']) or ('friends' in prompt_lower and 'write' in prompt_lower):
+        category = 'SMS/Text Messages'
+        content = """Act as a communication expert specializing in casual text messaging. I need you to write engaging SMS/text messages for friends.
+
+Message details:
+- Purpose: [birthday wish, invitation, check-in, funny message, apology, etc.]
+- Recipient: [close friend, group of friends, specific friend's name]
+- Tone: [casual, funny, heartfelt, exciting, supportive]
+- Context: [recent event, inside joke, shared memory, current situation]
+- Length: [short and sweet, medium, longer message]
+
+Create messages that are:
+- Natural and conversational
+- Appropriate for the relationship
+- Engaging and likely to get a response
+- Include emojis if they fit the style
+- Consider the friend's personality and interests
+
+Provide 3-5 different message options with varying tones so you can choose the one that feels right for the moment."""
+    
+    elif any(word in prompt_lower for word in ['blog', 'article', 'content']):
+        category = 'Content Writing'
+        content = """Act as a professional content writer and SEO expert. I need you to write a comprehensive blog post about [topic].
+
+Requirements:
+- Target audience: [describe your readers]
+- Article length: [word count or reading time]
+- Tone: [professional, conversational, educational, etc.]
+- SEO keywords: [primary and secondary keywords]
+- Content goals: [inform, persuade, entertain, convert]
+
+Structure your article with:
+- Compelling headline that grabs attention
+- Engaging introduction with a hook
+- Clear subheadings and logical flow
+- Actionable insights and practical examples
+- Strong conclusion with key takeaways
+- Meta description for SEO (150-160 characters)
+
+Make the content valuable, well-researched, and optimized for both readers and search engines."""
+    
+    elif any(word in prompt_lower for word in ['resume', 'cv', 'job application']):
+        category = 'Career Writing'
+        content = """Act as a professional career coach and resume writer. Help me create a compelling resume/CV for [specific job/industry].
+
+Position details:
+- Target role: [job title and seniority level]
+- Industry: [technology, healthcare, finance, etc.]
+- Company size: [startup, mid-size, enterprise]
+- Key requirements: [skills, experience, qualifications needed]
+- Your background: [current role, years of experience, key achievements]
+
+Create content that includes:
+- Professional summary tailored to the role
+- Achievement-focused bullet points with quantifiable results
+- Relevant skills and technologies
+- Industry-specific keywords for ATS optimization
+- Professional formatting and structure
+- Cover letter template if needed
+
+Focus on highlighting measurable impact and career progression. Use action verbs and specific metrics wherever possible."""
+    
+    elif any(word in prompt_lower for word in ['business plan', 'startup', 'pitch deck']):
+        category = 'Business Strategy'
+        content = """Act as a business strategy consultant and startup advisor. Help me create a comprehensive business plan for [business idea/industry].
+
+Business details:
+- Business concept: [product/service description]
+- Target market: [demographics, size, needs]
+- Revenue model: [how you'll make money]
+- Competition: [existing players and differentiation]
+- Funding needed: [amount and use of funds]
+- Timeline: [launch and growth milestones]
+
+Create a structured plan including:
+- Executive summary with compelling value proposition
+- Market analysis and opportunity sizing
+- Business model and revenue streams
+- Marketing and customer acquisition strategy
+- Financial projections and funding requirements
+- Risk analysis and mitigation strategies
+- Implementation roadmap with key milestones
+
+Make it investor-ready with clear metrics and realistic projections."""
+    
+    elif any(word in prompt_lower for word in ['marketing', 'advertisement', 'campaign']):
+        category = 'Marketing Strategy'
+        content = """Act as a marketing strategist and campaign expert. Create a comprehensive marketing strategy for [product/service/brand].
+
+Campaign details:
+- Product/service: [what you're promoting]
+- Target audience: [demographics, psychographics, behaviors]
+- Budget range: [available marketing spend]
+- Goals: [awareness, leads, sales, engagement]
+- Channels: [digital, traditional, social media preferences]
+- Timeline: [campaign duration and key dates]
+
+Develop a strategy that includes:
+- Clear positioning and unique value proposition
+- Multi-channel marketing mix and tactics
+- Content calendar and creative direction
+- Performance metrics and KPIs
+- Budget allocation across channels
+- Customer journey mapping
+- A/B testing recommendations
+
+Focus on measurable outcomes and ROI optimization."""
+    
+    elif any(word in prompt_lower for word in ['workout', 'fitness', 'exercise']):
+        category = 'Fitness Planning'
+        content = """Act as a certified personal trainer and fitness expert. Create a personalized workout plan for [fitness goals/preferences].
+
+Fitness profile:
+- Current fitness level: [beginner, intermediate, advanced]
+- Goals: [weight loss, muscle gain, endurance, strength]
+- Available time: [days per week, session duration]
+- Equipment: [gym, home equipment, bodyweight only]
+- Preferences: [cardio, strength, flexibility, sports]
+- Limitations: [injuries, physical restrictions]
+
+Design a program that includes:
+- Structured workout schedule with progression
+- Detailed exercise descriptions and proper form
+- Sets, reps, and intensity guidelines
+- Warm-up and cool-down routines
+- Nutrition recommendations to support goals
+- Progress tracking methods and metrics
+- Injury prevention and recovery strategies
+- Modifications for different fitness levels
+
+Focus on sustainable, safe, and effective training principles."""
+    
+    else:
+        # Generic professional prompt for unmatched categories
+        task = user_prompt.replace('chatgpt', '').replace('ChatGPT', '').replace('claude', '').replace('Claude', '').replace('midjourney', '').replace('Midjourney', '').replace('dall-e', '').replace('DALL-E', '').replace('gemini', '').replace('Gemini', '').strip()
+        category = 'Professional Assistant'
+        content = f"""Act as an expert professional consultant specializing in {task}. I need comprehensive guidance that demonstrates deep expertise and practical experience.
+
+Here are the specific requirements:
+- Context: [Describe your specific situation with {task}]
+- Current level: [Beginner/Intermediate/Advanced]
+- Goals: [What you want to achieve]
+- Timeline: [When you need results]
+- Resources available: [Budget, tools, team size, etc.]
+
+Provide detailed guidance that includes:
+- Step-by-step action plan with specific milestones
+- Industry best practices and proven methodologies
+- Common pitfalls and how to avoid them
+- Resource recommendations (tools, books, courses)
+- Success metrics to track progress
+- Next steps for continued improvement
+
+Structure your response with clear headings and actionable bullet points. Include real-world examples when relevant. Make every recommendation specific and immediately implementable."""
     
     fallback_prompts = {
         'ChatGPT': {
-            'content': f"""You are an expert professional assistant specialized in {task}.
-
-Your task:
-- 🎯 Purpose: {task}
-- 👤 Target Audience: [Specify who this is for]
-- 📝 Tone: [Choose tone - e.g. professional, casual, technical]
-- 🔑 Key Requirements: [List specific requirements]
-
-Format your response with:
-- Clear structure with headings and bullet points
-- Actionable steps or recommendations  
-- Relevant examples when applicable
-- Professional yet engaging language
-- Include a strong conclusion if applicable
-
-Additional guidelines:
-- Be thorough and comprehensive
-- Include practical tips and best practices
-- Consider different perspectives and approaches
-- Provide specific, actionable advice
-
-Provide:
-1. [Primary deliverable]
-2. [Supporting information]
-3. [Next steps or recommendations]""",
-            'category': 'Professional Assistant'
+            'content': content,
+            'category': category
         },
         'Midjourney': {
             'content': f"""{task}, ultra-detailed, professional photography style, perfect composition, studio lighting, high-end camera quality, 8K resolution, award-winning photography.
