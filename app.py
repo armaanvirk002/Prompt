@@ -13,7 +13,20 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptNest - FREE AI Prompt Generator | 1000+ Best ChatGPT, Midjourney & Claude Prompts 2025</title>
-    <meta name="description" content="Get the best AI prompts instantly! 1000+ FREE prompts for ChatGPT, Midjourney, Claude & DALL-E. Generate viral content, stunning art & professional copy in seconds. Used by 50,000+ creators daily!">
+    <meta name="description" content="Get the best AI prompts instantly! 1000+ FREE prompts for ChatGPT, Midjourney, Claude & DALL-E. Generate viral content, stunning art & professional copy in seconds. Used by 50,000+ creators daily!">    
+    <!-- Microsoft Clarity Analytics -->
+    <script type="text/javascript">
+        (function(c, l, a, r, i, t, y) {
+            c[a] = c[a] || function() {
+                (c[a].q = c[a].q || []).push(arguments)
+            };
+            t = l.createElement(r);
+            t.async = 1;
+            t.src = "https://www.clarity.ms/tag/" + i;
+            y = l.getElementsByTagName(r)[0];
+            y.parentNode.insertBefore(t, y);
+        })(window, document, "clarity", "script", "sme4b33o32");
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
