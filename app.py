@@ -310,20 +310,28 @@ def generate_with_openrouter(user_prompt):
     try:
         platform = detect_platform(user_prompt)
         
-        system_prompt = f"""You are an expert prompt engineer. Create a highly effective, detailed prompt for {platform} based on the user's request.
+        system_prompt = f"""You are an expert prompt engineer. Create a comprehensive, detailed, and structured prompt for {platform} based on the user's request.
 
-Requirements:
-- Make it specific and actionable
-- Include relevant context and constraints
-- Optimize for {platform}'s capabilities
-- Ensure it will produce high-quality results
-- Keep it professional yet engaging
+CRITICAL REQUIREMENTS:
+- Create DETAILED, STRUCTURED prompts (150-300 words) that are ready-to-use
+- Include step-by-step instructions, bullet points, and clear formatting
+- Add specific role definitions, context, and expected outputs
+- Include examples, constraints, and formatting guidelines
+- Make it immediately actionable and professional
+- DO NOT create meta-instructions - create the actual detailed prompt
+
+STRUCTURE TEMPLATE:
+- Role/Identity: Define the AI's expertise
+- Task: Clear, specific instructions with bullet points
+- Format: Expected output structure  
+- Examples: When helpful
+- Constraints: Important limitations or requirements
 
 Return a JSON object with this structure:
 {{
     "platform": "{platform}",
     "category": "appropriate category",
-    "content": "the optimized prompt"
+    "content": "the comprehensive, detailed, structured prompt (150-300 words)"
 }}"""
 
         response = requests.post(
@@ -357,26 +365,158 @@ def generate_fallback_prompt(user_prompt):
     """Generate fallback prompt when API is unavailable"""
     platform = detect_platform(user_prompt)
     
+    # Create detailed, structured fallback prompts based on the request
+    task = user_prompt.replace('chatgpt', '').replace('ChatGPT', '').replace('claude', '').replace('Claude', '').replace('midjourney', '').replace('Midjourney', '').replace('dall-e', '').replace('DALL-E', '').replace('gemini', '').replace('Gemini', '').strip()
+    
     fallback_prompts = {
         'ChatGPT': {
-            'content': f"Act as an expert assistant. {user_prompt.replace('chatgpt', '').replace('ChatGPT', '').strip()}. Provide detailed, actionable, and professional responses. Consider multiple perspectives and include practical examples where relevant.",
-            'category': 'General Assistant'
+            'content': f"""You are an expert professional assistant specialized in {task}.
+
+Your task:
+- 🎯 Purpose: {task}
+- 👤 Target Audience: [Specify who this is for]
+- 📝 Tone: [Choose tone - e.g. professional, casual, technical]
+- 🔑 Key Requirements: [List specific requirements]
+
+Format your response with:
+- Clear structure with headings and bullet points
+- Actionable steps or recommendations  
+- Relevant examples when applicable
+- Professional yet engaging language
+- Include a strong conclusion if applicable
+
+Additional guidelines:
+- Be thorough and comprehensive
+- Include practical tips and best practices
+- Consider different perspectives and approaches
+- Provide specific, actionable advice
+
+Provide:
+1. [Primary deliverable]
+2. [Supporting information]
+3. [Next steps or recommendations]""",
+            'category': 'Professional Assistant'
         },
         'Midjourney': {
-            'content': f"Create a detailed image of {user_prompt.replace('midjourney', '').replace('Midjourney', '').strip()}. High quality, professional photography style, perfect lighting, sharp focus, 8K resolution, trending on artstation, award-winning composition --ar 16:9 --v 6",
-            'category': 'Image Generation'
+            'content': f"""{task}, ultra-detailed, professional photography style, perfect composition, studio lighting, high-end camera quality, 8K resolution, award-winning photography.
+
+Style specifications:
+- Lighting: Professional studio lighting, soft shadows, perfect exposure
+- Composition: Rule of thirds, balanced framing, visual hierarchy
+- Quality: Ultra-sharp focus, fine details, rich textures
+- Color: Vibrant yet natural color palette, proper white balance
+- Mood: [Specify desired mood/atmosphere]
+
+Technical parameters:
+- Camera: Professional DSLR equivalent, 85mm lens
+- Settings: f/2.8 aperture, optimal depth of field
+- Post-processing: Color grading, professional retouching
+- Resolution: 8K, print-ready quality
+
+Additional elements:
+- Background: [Specify background style]
+- Props/Elements: [List relevant props]
+- Style inspiration: Contemporary commercial photography
+- Trending on: Behance, Pinterest, professional portfolios
+
+--ar 16:9 --v 6 --style raw --quality 2""",
+            'category': 'Professional Photography'
         },
         'Claude': {
-            'content': f"As Claude, an AI assistant focused on being helpful, harmless, and honest, please {user_prompt.replace('claude', '').replace('Claude', '').strip()}. Provide comprehensive analysis with clear reasoning and evidence-based insights.",
-            'category': 'Analysis & Research'
+            'content': f"""As an expert analyst and researcher, provide a comprehensive analysis of {task}.
+
+Analysis Framework:
+- 🔍 Overview: Provide clear context and background
+- 📊 Key Components: Break down main elements
+- ⚖️ Pros & Cons: Balanced evaluation
+- 💡 Insights: Evidence-based conclusions
+- 🎯 Recommendations: Actionable next steps
+
+Research methodology:
+- Use current, reliable sources
+- Apply critical thinking and logical reasoning
+- Consider multiple perspectives and stakeholder views
+- Identify potential biases and limitations
+- Provide evidence-based conclusions
+
+Structure your response:
+1. Executive Summary (2-3 sentences)
+2. Detailed Analysis (main body with subheadings)
+3. Key Findings (bullet points)
+4. Recommendations (specific, actionable)
+5. Conclusion (synthesis and next steps)
+
+Ensure accuracy, objectivity, and comprehensive coverage while maintaining clarity and professional presentation.""",
+            'category': 'Research & Analysis'
         },
         'DALL-E': {
-            'content': f"Generate a high-quality image of {user_prompt.replace('dall-e', '').replace('DALL-E', '').strip()}. Professional style, detailed, vibrant colors, perfect composition, studio lighting, photorealistic quality.",
-            'category': 'AI Art Generation'
+            'content': f"""Create a highly detailed, professional-quality image of {task}.
+
+Artistic specifications:
+- Style: Photorealistic with artistic enhancement
+- Composition: Balanced, visually appealing layout
+- Lighting: Professional studio lighting, dramatic shadows
+- Color palette: Rich, vibrant colors with perfect saturation
+- Texture: Fine details, realistic materials and surfaces
+
+Technical requirements:
+- Resolution: High-definition, crisp and clear
+- Focus: Sharp foreground with appropriate depth of field
+- Quality: Professional photography standard
+- Format: Optimized for both digital and print use
+
+Creative elements:
+- Mood: [Specify desired emotional tone]
+- Atmosphere: Professional yet engaging
+- Visual hierarchy: Clear focal points and flow
+- Style inspiration: Contemporary digital art and photography
+- Professional polish: Commercial-grade finishing
+
+Additional considerations:
+- Lighting setup: Multi-point lighting with key, fill, and rim lights
+- Background: Complementary but not distracting
+- Props and elements: Carefully curated and positioned
+- Overall aesthetic: Modern, clean, and professional""",
+            'category': 'Professional Digital Art'
         },
         'Gemini': {
-            'content': f"Using Google's advanced capabilities, please {user_prompt.replace('gemini', '').replace('Gemini', '').strip()}. Provide accurate, up-to-date information with reliable sources and comprehensive coverage.",
-            'category': 'Research & Information'
+            'content': f"""As Google's advanced AI, provide comprehensive research and analysis on {task}.
+
+Research approach:
+- 🌐 Current Information: Latest data and trends
+- 📈 Data Analysis: Quantitative and qualitative insights
+- 🔗 Source Verification: Reliable, authoritative sources
+- 🎯 Multi-perspective: Various viewpoints and approaches
+- 💡 Practical Applications: Real-world implications
+
+Structure your response:
+1. Current State Analysis
+   - Latest developments and trends
+   - Key statistics and data points
+   - Market conditions (if applicable)
+
+2. Comprehensive Overview
+   - Background and context
+   - Important factors and variables
+   - Stakeholder perspectives
+
+3. Evidence-Based Insights
+   - Research findings and conclusions
+   - Expert opinions and studies
+   - Case studies and examples
+
+4. Future Implications
+   - Predicted trends and developments
+   - Potential challenges and opportunities
+   - Strategic recommendations
+
+5. Actionable Next Steps
+   - Specific recommendations
+   - Implementation strategies
+   - Success metrics and evaluation
+
+Ensure accuracy, depth, and practical value while maintaining clarity and professional presentation.""",
+            'category': 'Advanced Research'
         }
     }
     
