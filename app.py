@@ -206,7 +206,20 @@ def generate_with_openrouter(user_prompt):
     
     try:
         platform = detect_platform(user_prompt)
-        system_prompt = f"""Create a highly effective prompt for {platform} based on the user's request. Return JSON: {{"platform": "{platform}", "category": "appropriate category", "content": "the optimized prompt"}}"""
+        system_prompt = f"""You are an expert prompt engineer. Create a ready-to-use, professional {platform} prompt based on the user's request.
+
+IMPORTANT: Create a prompt that the user can directly copy and paste into {platform}. DO NOT create instructions about how to use {platform} - create the actual prompt they need.
+
+The prompt should:
+1. Be a complete, ready-to-use prompt for {platform}
+2. Include specific instructions, context, and format requirements
+3. Be 150-300 words and highly detailed
+4. Include examples, parameters, or specifications when helpful
+5. For image platforms: include technical specs, style, quality parameters
+6. For text platforms: include role, context, format, and step-by-step instructions
+
+Return JSON format:
+{{"platform": "{platform}", "category": "appropriate category", "content": "the complete ready-to-use prompt"}}"""
         
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
@@ -232,25 +245,83 @@ def generate_with_openrouter(user_prompt):
 
 def generate_fallback_prompt(user_prompt):
     platform = detect_platform(user_prompt)
+    
+    # Extract the core request from user input
+    clean_request = user_prompt.lower()
+    for keyword in ['create', 'generate', 'make', 'build', 'write', 'chatgpt', 'midjourney', 'claude', 'dall-e', 'gemini', 'prompt', 'for']:
+        clean_request = clean_request.replace(keyword, '').strip()
+    
     fallback_prompts = {
         'ChatGPT': {
-            'content': f"Act as an expert assistant. {user_prompt.replace('chatgpt', '').replace('ChatGPT', '').strip()}. Provide detailed, actionable, and professional responses with practical examples.",
-            'category': 'General Assistant'
+            'content': f"""You are an expert {clean_request} specialist with extensive knowledge and practical experience.
+
+Task: {clean_request}
+
+Instructions:
+- Analyze the specific requirements carefully
+- Provide detailed, step-by-step guidance 
+- Include practical examples and real-world applications
+- Address potential challenges and solutions
+- Offer best practices and professional tips
+- Suggest relevant tools and resources
+
+Format Requirements:
+- Use clear headings and bullet points
+- Provide actionable steps
+- Include specific details and examples
+- Make recommendations concrete and implementable
+
+Tone: Professional, helpful, and thorough while remaining accessible.
+
+Please provide comprehensive guidance on {clean_request}, ensuring your response is detailed, practical, and immediately actionable.""",
+            'category': 'Expert Assistant'
         },
         'Midjourney': {
-            'content': f"Create a detailed image of {user_prompt.replace('midjourney', '').replace('Midjourney', '').strip()}. High quality, professional photography style, perfect lighting, sharp focus, 8K resolution --ar 16:9 --v 6",
-            'category': 'Image Generation'
+            'content': f"""Create a stunning, highly detailed image of {clean_request}, hyper-realistic, professional photography quality, perfect composition and lighting, 8K ultra-high definition, studio-quality lighting with perfect shadows and highlights, rich vibrant colors with excellent color grading, rule of thirds composition, razor-sharp focus on main subject with appropriate depth of field, professional cinematic quality, intricate textures, realistic materials, authentic proportions, complementary background that enhances the main subject, shot with professional DSLR, prime lens, optimal aperture for subject isolation --ar 16:9 --v 6 --style raw --q 2""",
+            'category': 'Professional Image Generation'
         },
         'Claude': {
-            'content': f"As Claude, please {user_prompt.replace('claude', '').replace('Claude', '').strip()}. Provide comprehensive analysis with clear reasoning and evidence-based insights.",
-            'category': 'Analysis & Research'
+            'content': f"""Analyze {clean_request} comprehensively using the following framework:
+
+1. Initial Assessment: Break down the key components and context
+2. Multi-Perspective Analysis: Consider various angles and stakeholder viewpoints  
+3. Evidence-Based Reasoning: Support findings with logical reasoning and available evidence
+4. Practical Applications: Identify real-world implications and applications
+5. Potential Challenges: Anticipate obstacles and provide mitigation strategies
+6. Actionable Recommendations: Conclude with specific, implementable suggestions
+
+Methodology:
+- Use systematic approach to ensure thoroughness
+- Apply critical thinking to identify assumptions and biases
+- Maintain balanced perspective acknowledging limitations and uncertainties
+- Communicate clearly with structured presentation
+
+Provide a comprehensive analysis that includes background context, detailed examination, practical insights, and actionable recommendations for {clean_request}.""",
+            'category': 'Comprehensive Analysis'
         },
         'DALL-E': {
-            'content': f"Generate a high-quality image of {user_prompt.replace('dall-e', '').replace('DALL-E', '').strip()}. Professional style, detailed, vibrant colors, perfect composition, photorealistic quality.",
-            'category': 'AI Art Generation'
+            'content': f"""Create a professional-quality, highly detailed image of {clean_request}. Photorealistic with artistic flair, professional-grade quality suitable for commercial use, high-definition with crisp details, expertly framed with balanced elements, harmonious color palette that enhances the subject, professional lighting setup with proper shadows and highlights, realistic textures and materials with fine detail, appropriate depth of field to create visual interest, crystal clear focus on main elements, well-balanced contrast for visual impact, rich vibrant colors without oversaturation, realistic proportions and accurate representations. Create an engaging atmosphere that draws the viewer in and conveys the intended message. The final image should be portfolio-worthy and demonstrate exceptional attention to detail and artistic composition.""",
+            'category': 'Professional AI Art'
         },
         'Gemini': {
-            'content': f"Using Google's capabilities, please {user_prompt.replace('gemini', '').replace('Gemini', '').strip()}. Provide accurate, up-to-date information with reliable sources.",
+            'content': f"""Research and provide comprehensive, accurate, up-to-date information about {clean_request}.
+
+Research Approach:
+1. Multi-Source Analysis: Draw from diverse, reliable sources to ensure accuracy
+2. Current Information: Prioritize the most recent and relevant data available
+3. Comprehensive Coverage: Address multiple aspects and dimensions of the topic
+4. Fact-Checking: Verify information and note any limitations or uncertainties
+5. Practical Application: Focus on actionable insights and real-world relevance
+
+Structure your response with:
+- Background and Context: Essential foundational information
+- Current State: Latest developments and current situation  
+- Key Insights: Most important findings and implications
+- Trends and Patterns: Emerging developments and future directions
+- Practical Recommendations: Actionable steps and best practices
+- Resources: Additional sources and tools for further exploration
+
+Ensure accuracy through multiple reliable sources, focus on what's most important and useful, present complex information in understandable terms, maintain balanced perspective with acknowledged limitations. Provide detailed, research-backed information with practical applications for {clean_request}.""",
             'category': 'Research & Information'
         }
     }
