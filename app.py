@@ -2,16 +2,18 @@ from flask import Flask, request, jsonify, render_template_string
 import requests
 import json
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
+# HTML template with SEO optimization
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptNest - FREE AI Prompt Generator | 1000+ Best ChatGPT, Midjourney & Claude Prompts 2025</title>
-    <meta name="description" content="Get the best AI prompts instantly! 1000+ FREE prompts for ChatGPT, Midjourney, Claude & DALL-E. Generate viral content, stunning art & professional copy in seconds.">
+    <meta name="description" content="Get the best AI prompts instantly! 1000+ FREE prompts for ChatGPT, Midjourney, Claude & DALL-E. Generate viral content, stunning art & professional copy in seconds. Used by 50,000+ creators daily!">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -204,7 +206,7 @@ def generate_with_openrouter(user_prompt):
     
     try:
         platform = detect_platform(user_prompt)
-        system_prompt = f"Create a highly effective prompt for {platform} based on the user's request. Return JSON: {{\"platform\": \"{platform}\", \"category\": \"appropriate category\", \"content\": \"the optimized prompt\"}}"
+        system_prompt = f"""Create a highly effective prompt for {platform} based on the user's request. Return JSON: {{"platform": "{platform}", "category": "appropriate category", "content": "the optimized prompt"}}"""
         
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
